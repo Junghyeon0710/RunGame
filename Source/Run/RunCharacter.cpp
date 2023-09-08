@@ -10,6 +10,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include "Kismet/GameplayStatics.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -18,6 +19,7 @@ DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
 ARunCharacter::ARunCharacter()
 {
+	PrimaryActorTick.bCanEverTick = true;
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 		
@@ -44,7 +46,8 @@ ARunCharacter::ARunCharacter()
 	CameraBoom->SetupAttachment(RootComponent);
 	CameraBoom->TargetArmLength = 400.0f; // The camera follows at this distance behind the character	
 	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
-
+	CameraBoom->SocketOffset = FVector(0.f, 0.f, 100.f);
+	
 	// Create a follow camera
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
@@ -52,6 +55,14 @@ ARunCharacter::ARunCharacter()
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
+}
+
+void ARunCharacter::Tick(float DeltaTime)
+{
+	AddMovementInput(GetActorForwardVector(), 1.f);
+	Move(0.f);
+	TurnCorner();
+
 }
 
 void ARunCharacter::BeginPlay()
@@ -83,9 +94,10 @@ void ARunCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 
 		// Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ARunCharacter::Move);
-
 		// Looking
-		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ARunCharacter::Look);
+		//EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ARunCharacter::Look);
+		EnhancedInputComponent->BindAction(AAction, ETriggerEvent::Completed, this, &ARunCharacter::AInput);
+		EnhancedInputComponent->BindAction(DAction, ETriggerEvent::Completed, this, &ARunCharacter::DInput);
 	}
 	else
 	{
@@ -95,23 +107,13 @@ void ARunCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 
 void ARunCharacter::Move(const FInputActionValue& Value)
 {
-	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
-
-	if (Controller != nullptr)
+	if (Controller && !CanTurn)
 	{
-		// find out which way is forward
 		const FRotator Rotation = Controller->GetControlRotation();
 		const FRotator YawRotation(0, Rotation.Yaw, 0);
-
-		// get forward vector
-		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	
-		// get right vector 
 		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
-		// add movement 
-		AddMovementInput(ForwardDirection, MovementVector.Y);
 		AddMovementInput(RightDirection, MovementVector.X);
 	}
 }
@@ -126,5 +128,33 @@ void ARunCharacter::Look(const FInputActionValue& Value)
 		// add yaw and pitch input to controller
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
+	}
+}
+
+void ARunCharacter::AInput()
+{
+	if (!CanTurn) return;
+	DesiredRotation += FRotator(0.f, -90.f, 0.f);
+
+}
+
+void ARunCharacter::DInput()
+{
+	if (!CanTurn) return;
+	DesiredRotation += FRotator(0.f, 90.f, 0.f);
+}
+
+void ARunCharacter::TurnCorner()
+{
+	if (Controller)
+	{
+		FRotator Rotation = GetControlRotation();
+		if (DesiredRotation != Rotation)
+		{
+			FRotator CRotation = FMath::RInterpTo(Rotation, DesiredRotation, GetWorld()->DeltaTimeSeconds, 30.f);
+			APlayerController* PlayerConroller = UGameplayStatics::GetPlayerController(this, 0);
+			PlayerConroller->SetControlRotation(CRotation);
+			//SetActorRotation(CRotation);
+		}
 	}
 }

@@ -44,9 +44,17 @@ class ARunCharacter : public ACharacter
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* LookAction;
 
+	/** AKey Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* AAction;
+
+	/** DKey Input Action */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* DAction;
+
 public:
 	ARunCharacter();
-	
+	virtual void Tick(float DeltaTime)override;
 
 protected:
 
@@ -56,6 +64,11 @@ protected:
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
 			
+	void AInput();
+
+	void DInput();
+
+	void TurnCorner();
 
 protected:
 	// APawn interface
@@ -63,6 +76,16 @@ protected:
 	
 	// To add mapping context
 	virtual void BeginPlay();
+
+
+
+	UPROPERTY(VisibleAnywhere)
+	FRotator DesiredRotation;
+
+	UPROPERTY(EditAnywhere)
+	bool CanTurn;
+
+	
 
 public:
 	/** Returns CameraBoom subobject **/
