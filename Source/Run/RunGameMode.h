@@ -13,6 +13,21 @@ class ARunGameMode : public AGameModeBase
 
 public:
 	ARunGameMode();
+
+	void AddFloorTile();
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
+private:
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class AFloorTile> Floortile;
+
+
+
+	UPROPERTY(VisibleAnywhere)
+	FTransform SpawnTransform;
 };
 
 

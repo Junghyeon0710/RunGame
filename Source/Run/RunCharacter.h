@@ -83,7 +83,7 @@ protected:
 	FRotator DesiredRotation;
 
 	UPROPERTY(EditAnywhere)
-	bool CanTurn;
+	bool bCanTurn;
 
 	
 
@@ -92,5 +92,7 @@ public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+
+	FORCEINLINE void SetCanTurn(bool CanTurn) { bCanTurn = CanTurn; }
 };
 
