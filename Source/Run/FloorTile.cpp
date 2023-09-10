@@ -7,6 +7,8 @@
 #include "RunGameMode.h"
 #include "RunCharacter.h"
 #include "Blocker.h"
+#include "Kismet/KismetMathLibrary.h"
+#include "Coin.h"
 
 // Sets default values
 AFloorTile::AFloorTile()
@@ -41,7 +43,13 @@ AFloorTile::AFloorTile()
 	SpawnPointR = CreateDefaultSubobject<UArrowComponent>(TEXT("SpawnPointR"));
 	SpawnPointR->SetupAttachment(RootComponent);
 
+	CoinBox = CreateDefaultSubobject<UBoxComponent>(TEXT("CoinBox"));
+	CoinBox->SetupAttachment(RootComponent);
 
+	TurnBox = CreateDefaultSubobject<UBoxComponent>(TEXT("TurnBox"));
+	TurnBox->SetupAttachment(RootComponent);
+	TurnBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	TurnBox->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
 }
 
 // Called when the game starts or when spawned
@@ -50,7 +58,10 @@ void AFloorTile::BeginPlay()
 	Super::BeginPlay();
 
 	BoxPoint->OnComponentBeginOverlap.AddDynamic(this, &AFloorTile::BoxBeginOverlap);
-	
+	TurnBox->OnComponentBeginOverlap.AddDynamic(this, &AFloorTile::TurnBoxBeginOverlap);
+
+	Wall->OnComponentHit.AddDynamic(this, &AFloorTile::WallOnHit);
+	Wall2->OnComponentHit.AddDynamic(this, &AFloorTile::Wall2OnHit);
 }
 
 void AFloorTile::BoxBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -58,7 +69,7 @@ void AFloorTile::BoxBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActo
 	UWorld* World = GetWorld();
 	if (World && OtherActor->IsA(ARunCharacter::StaticClass()))
 	{
-		if (SpawnPoints.Num() > 0)
+		if (SpawnPoints.Num() > 0 )
 		{
 			const int32 Blockerindex = FMath::RandRange(0, SpawnPoints.Num() - 1);
 			Blocker = World->SpawnActor<ABlocker>(SpawnBlocker, SpawnPoints[Blockerindex]);
@@ -70,6 +81,55 @@ void AFloorTile::BoxBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActo
 			SetLifeSpan(2.f);
 			Blocker->SetLifeSpan(8.f);
 		}
+		CoinCreate();
+	}
+}
+
+void AFloorTile::TurnBoxBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor->IsA(ARunCharacter::StaticClass()))
+	{
+		ARunCharacter* RunCharacter = Cast<ARunCharacter>(OtherActor);
+		if (RunCharacter)
+		{
+			RunCharacter->SetCanTurn(true);
+		}
+	}
+}
+
+void AFloorTile::WallOnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	if (OtherActor->IsA(ARunCharacter::StaticClass()))
+	{
+		ARunCharacter* RunCharacter = Cast<ARunCharacter>(OtherActor);
+		if (RunCharacter)
+		{
+			//hitNormal 충돌한 지점에서 수직 백터
+			float a = FVector::DotProduct(Hit.Normal,RunCharacter->GetActorForwardVector());
+			if (FMath::IsNearlyEqual(a, 1, .01f))
+			{
+				RunCharacter->Die();
+			}
+		}
+		
+	}
+}
+
+void AFloorTile::Wall2OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	if (OtherActor->IsA(ARunCharacter::StaticClass()))
+	{
+		ARunCharacter* RunCharacter = Cast<ARunCharacter>(OtherActor);
+		if (RunCharacter)
+		{
+			//hitNormal 충돌한 지점에서 수직 백터
+			float a = FVector::DotProduct(Hit.Normal, RunCharacter->GetActorForwardVector());
+			if (FMath::IsNearlyEqual(a, 1, .01f))
+			{
+				RunCharacter->Die();
+			}
+		}
+
 	}
 }
 
@@ -92,6 +152,26 @@ void AFloorTile::SetSpawnPoints()
 	SpawnPoints.Add(SpawnPoint->GetComponentTransform());
 	SpawnPoints.Add(SpawnPointL->GetComponentTransform());
 	SpawnPoints.Add(SpawnPointR->GetComponentTransform());
+}
+
+void AFloorTile::CoinCreate()
+{
+	UWorld* World = GetWorld();
+	if (CoinClass && World)
+	{
+		UE_LOG(LogTemp, Display, TEXT("124"));
+		
+		for (int32 i = 0; i < 5; i++)
+		{
+			FVector CoinTrasnform = UKismetMathLibrary::RandomPointInBoundingBox(CoinBox->GetComponentLocation(), CoinBox->GetScaledBoxExtent());
+			ACoin* Coin = World->SpawnActor<ACoin>(CoinClass, FTransform(CoinTrasnform));
+			if (Coin)
+			{
+				Coin->SetLifeSpan(7.0f);
+			}
+		}
+	}
+	
 }
 
 FTransform AFloorTile::GetAttachTransform() const

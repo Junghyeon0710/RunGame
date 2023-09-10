@@ -14,30 +14,39 @@ ABlocker::ABlocker()
 
 	SphereCollision = CreateDefaultSubobject<USphereComponent>(TEXT("SphereCollision"));
 	SetRootComponent(SphereCollision);
-
+	SphereCollision->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
+	SphereCollision->SetCollisionResponseToChannel(ECollisionChannel::ECC_Pawn, ECollisionResponse::ECR_Block);
+	SphereCollision->bHasPerInstanceHitProxies = true;
 	Block = CreateDefaultSubobject<UStaticMeshComponent>("Block");
 	Block->SetupAttachment(RootComponent);
-
+	
 }
 
 // Called when the game starts or when spawned
 void ABlocker::BeginPlay()
 {
 	Super::BeginPlay();
-	SphereCollision->OnComponentBeginOverlap.AddDynamic(this, &ABlocker::SphereBeginOverlap);
-	
+	//SphereCollision->OnComponentBeginOverlap.AddDynamic(this, &ABlocker::SphereBeginOverlap);
+	SphereCollision->OnComponentHit.AddDynamic(this, &ABlocker::OnHit);
 }
 
 void ABlocker::SphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (OtherActor->IsA(ARunCharacter::StaticClass()))
+
+}
+
+void ABlocker::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	if (OtherActor->IsA(ARunCharacter::StaticClass()) && !bHit)
 	{
 		ARunCharacter* RunCharacter = Cast<ARunCharacter>(OtherActor);
-		
+
 		RunCharacter->DisableInput(GetWorld()->GetFirstPlayerController());
-		Destroy();
+		//Destroy();
 		UGameplayStatics::PlaySound2D(this, BlockSound);
-		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BlockParticle, SphereCollision->GetComponentLocation(),SphereCollision->GetComponentRotation(),FVector(5.f));
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BlockParticle, SphereCollision->GetComponentLocation(), SphereCollision->GetComponentRotation(), FVector(5.f));
+		bHit = true;
+		RunCharacter->SetHit(true);
 	}
 }
 

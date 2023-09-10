@@ -26,6 +26,7 @@ void ARunGameMode::BeginPlay()
 	{
 		AddFloorTile();
 	}
+	
 
 }
 void ARunGameMode::AddFloorTile()
@@ -33,7 +34,19 @@ void ARunGameMode::AddFloorTile()
 	UWorld* World = GetWorld();
 	if (World)
 	{
-		AFloorTile* Floor = World->SpawnActor<AFloorTile>(Floortile, SpawnTransform);
+	
+		if (FloorTileNum < 8 && Floortile.Num() >0)
+		{
+			const int32 FloorIndex = FMath::RandRange(0, Floortile.Num()-1);
+			Floor = World->SpawnActor<AFloorTile>(Floortile[FloorIndex], SpawnTransform);
+			FloorTileNum++;
+		}
+		else if(FloortileCorner.Num() > 0)
+		{
+			const int32 FloorIndexCorner = FMath::RandRange(0, FloortileCorner.Num()-1);
+			Floor = World->SpawnActor<AFloorTile>(FloortileCorner[FloorIndexCorner], SpawnTransform);
+			FloorTileNum = 0;
+		}
 		if (Floor)
 		{
 			SpawnTransform = Floor->GetAttachTransform();

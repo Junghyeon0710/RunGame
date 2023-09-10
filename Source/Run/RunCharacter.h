@@ -56,6 +56,8 @@ public:
 	ARunCharacter();
 	virtual void Tick(float DeltaTime)override;
 
+	void Die();
+
 protected:
 
 	/** Called for movement input */
@@ -85,7 +87,17 @@ protected:
 	UPROPERTY(EditAnywhere)
 	bool bCanTurn;
 
-	
+private:
+	bool bHit = false;
+
+	int32 Coin = 0;
+	float Time;
+
+	UPROPERTY()
+	class UCharacterOverlay* CharacterOverlay;
+
+	UPROPERTY(EditAnywhere)
+	class USoundBase* DieSound;
 
 public:
 	/** Returns CameraBoom subobject **/
@@ -94,5 +106,7 @@ public:
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
 	FORCEINLINE void SetCanTurn(bool CanTurn) { bCanTurn = CanTurn; }
+	FORCEINLINE void SetHit(bool Hit) { bHit = Hit; }
+	void PlusCoin();
 };
 

@@ -11,6 +11,8 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "Kismet/GameplayStatics.h"
+#include "MyHUD.h"
+#include "Characteroverlay.h"
 
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
@@ -62,10 +64,26 @@ ARunCharacter::ARunCharacter()
 
 void ARunCharacter::Tick(float DeltaTime)
 {
-	AddMovementInput(GetActorForwardVector(), 1.f);
-	Move(0.f);
-	TurnCorner();
+	if (!bHit)
+	{
+		AddMovementInput(GetActorForwardVector(), 1.f);
+		Move(0.f);
+		TurnCorner();
+	}
+	if (CharacterOverlay)
+	{
+		CharacterOverlay->SetTime(Time +=DeltaTime);
+	}
+}
 
+void ARunCharacter::Die()
+{
+	DisableInput(GetWorld()->GetFirstPlayerController());
+	bHit = true;
+	if (DieSound)
+	{
+		UGameplayStatics::PlaySound2D(this, DieSound);
+	}
 }
 
 void ARunCharacter::BeginPlay()
@@ -79,7 +97,30 @@ void ARunCharacter::BeginPlay()
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
 			Subsystem->AddMappingContext(DefaultMappingContext, 0);
+			
 		}
+	}
+	APlayerController* PlayerController = Cast<APlayerController>(GetController());
+	if (PlayerController)
+	{
+		AMyHUD* MyHUD = Cast<AMyHUD>(PlayerController->GetHUD());
+		if (MyHUD)
+		{
+			CharacterOverlay = MyHUD->GetCharacterOverlay();
+			if (CharacterOverlay)
+			{
+				CharacterOverlay->SetCoin(Coin);
+				CharacterOverlay->SetTime(GetWorld()->DeltaRealTimeSeconds);
+			}
+		}	
+	}
+}
+
+void ARunCharacter::PlusCoin()
+{
+	if (CharacterOverlay)
+	{
+		CharacterOverlay->SetCoin(++Coin);
 	}
 }
 

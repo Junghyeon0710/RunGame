@@ -21,6 +21,16 @@ protected:
 
 	UFUNCTION()
 	void BoxBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void TurnBoxBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
+
+	UFUNCTION()
+	void WallOnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	UFUNCTION()
+	void Wall2OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -58,6 +68,9 @@ private:
 	class UArrowComponent* SpawnPointR;
 
 	UPROPERTY(VisibleAnywhere)
+	class UBoxComponent* CoinBox;
+
+	UPROPERTY(VisibleAnywhere)
 	TArray<FTransform> SpawnPoints;
 
 	UPROPERTY(EditAnywhere)
@@ -65,6 +78,14 @@ private:
 
 	UPROPERTY()
 	class ABlocker* Blocker;
+
+	void CoinCreate();
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class ACoin> CoinClass;
+
+	UPROPERTY(VisibleAnywhere)
+	class UBoxComponent* TurnBox;
 
 public:
 	FTransform GetAttachTransform() const;

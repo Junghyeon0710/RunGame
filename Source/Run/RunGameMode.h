@@ -22,12 +22,18 @@ protected:
 private:
 
 	UPROPERTY(EditAnywhere)
-	TSubclassOf<class AFloorTile> Floortile;
+	TArray<TSubclassOf<class AFloorTile>> Floortile;
 
-
+	UPROPERTY(EditAnywhere)
+	TArray<TSubclassOf<class AFloorTile>> FloortileCorner;
 
 	UPROPERTY(VisibleAnywhere)
 	FTransform SpawnTransform;
+
+	UPROPERTY(EditAnywhere)
+	int32 FloorTileNum;
+
+	AFloorTile* Floor;
 };
 
 
