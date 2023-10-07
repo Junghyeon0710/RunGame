@@ -34,7 +34,6 @@ void ARunGameMode::AddFloorTile()
 	UWorld* World = GetWorld();
 	if (World)
 	{
-	
 		if (FloorTileNum < 8 && Floortile.Num() >0)
 		{
 			const int32 FloorIndex = FMath::RandRange(0, Floortile.Num()-1);
@@ -50,7 +49,10 @@ void ARunGameMode::AddFloorTile()
 		if (Floor)
 		{
 			SpawnTransform = Floor->GetAttachTransform();
+			Floor->BlockerCreate();
+			Floor->CoinCreate();
 		}
+	
 	}
 }
 

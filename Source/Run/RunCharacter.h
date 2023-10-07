@@ -58,6 +58,8 @@ public:
 
 	void Die();
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite)
+	bool bSpeedBoom = false;
 protected:
 
 	/** Called for movement input */
@@ -71,6 +73,8 @@ protected:
 	void DInput();
 
 	void TurnCorner();
+
+
 
 protected:
 	// APawn interface

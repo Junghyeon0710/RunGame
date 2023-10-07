@@ -10,7 +10,7 @@
 ABlocker::ABlocker()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 
 	SphereCollision = CreateDefaultSubobject<USphereComponent>(TEXT("SphereCollision"));
 	SetRootComponent(SphereCollision);
@@ -26,28 +26,33 @@ ABlocker::ABlocker()
 void ABlocker::BeginPlay()
 {
 	Super::BeginPlay();
-	//SphereCollision->OnComponentBeginOverlap.AddDynamic(this, &ABlocker::SphereBeginOverlap);
-	SphereCollision->OnComponentHit.AddDynamic(this, &ABlocker::OnHit);
+	SphereCollision->OnComponentBeginOverlap.AddDynamic(this, &ABlocker::SphereBeginOverlap);
+	//SphereCollision->OnComponentHit.AddDynamic(this, &ABlocker::OnHit);
 }
 
 void ABlocker::SphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
-{
-
-}
-
-void ABlocker::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	if (OtherActor->IsA(ARunCharacter::StaticClass()) && !bHit)
 	{
 		ARunCharacter* RunCharacter = Cast<ARunCharacter>(OtherActor);
 
-		RunCharacter->DisableInput(GetWorld()->GetFirstPlayerController());
-		//Destroy();
+		bHit = true;
 		UGameplayStatics::PlaySound2D(this, BlockSound);
 		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), BlockParticle, SphereCollision->GetComponentLocation(), SphereCollision->GetComponentRotation(), FVector(5.f));
-		bHit = true;
-		RunCharacter->SetHit(true);
+
+		if (!RunCharacter->bSpeedBoom)
+		{
+			RunCharacter->DisableInput(GetWorld()->GetFirstPlayerController());
+			RunCharacter->SetHit(true);
+			return;
+		}
+		Destroy();
 	}
+}
+
+void ABlocker::OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	
 }
 
 // Called every frame

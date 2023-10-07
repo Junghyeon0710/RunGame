@@ -79,7 +79,7 @@ private:
 	UPROPERTY()
 	class ABlocker* Blocker;
 
-	void CoinCreate();
+
 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class ACoin> CoinClass;
@@ -89,4 +89,6 @@ private:
 
 public:
 	FTransform GetAttachTransform() const;
+	void BlockerCreate();
+	void CoinCreate();
 };
