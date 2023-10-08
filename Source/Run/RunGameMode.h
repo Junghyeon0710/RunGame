@@ -34,6 +34,10 @@ private:
 	int32 FloorTileNum;
 
 	AFloorTile* Floor;
+
+	bool bStart = false;
+
+
 };
 
 

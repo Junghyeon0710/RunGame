@@ -43,6 +43,7 @@ void ABlocker::SphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AAct
 		if (!RunCharacter->bSpeedBoom)
 		{
 			RunCharacter->DisableInput(GetWorld()->GetFirstPlayerController());
+			RunCharacter->Die();
 			RunCharacter->SetHit(true);
 			return;
 		}

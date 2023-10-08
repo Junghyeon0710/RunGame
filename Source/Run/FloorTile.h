@@ -37,6 +37,7 @@ public:
 	virtual void OnConstruction(const FTransform& Transform) override;
 
 	void SetSpawnPoints();
+
 	
 private:
 
@@ -77,9 +78,13 @@ private:
 	TSubclassOf<class ABlocker> SpawnBlocker;
 
 	UPROPERTY()
-	class ABlocker* Blocker;
+	class ABlocker* Blocker; 
 
+	UPROPERTY(VisibleAnywhere)
+	class UArrowComponent* ItemSpawnPoint;
 
+	UPROPERTY(EditAnywhere)
+	TArray<TSubclassOf<class AItem>> ItemClass;
 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class ACoin> CoinClass;
@@ -87,8 +92,11 @@ private:
 	UPROPERTY(VisibleAnywhere)
 	class UBoxComponent* TurnBox;
 
+	bool bOverlap = false;
+
 public:
 	FTransform GetAttachTransform() const;
 	void BlockerCreate();
 	void CoinCreate();
+	void ItemSpawn();
 };

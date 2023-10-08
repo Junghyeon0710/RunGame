@@ -91,17 +91,24 @@ protected:
 	UPROPERTY(EditAnywhere)
 	bool bCanTurn;
 
+	UPROPERTY(BlueprintReadOnly)
+	float Time;
+
 private:
 	bool bHit = false;
 
 	int32 Coin = 0;
-	float Time;
+
+
 
 	UPROPERTY()
 	class UCharacterOverlay* CharacterOverlay;
 
 	UPROPERTY(EditAnywhere)
 	class USoundBase* DieSound;
+
+	UPROPERTY(EditAnywhere)
+	TSubclassOf<class UDieWidget> DieWidgetClass;
 
 public:
 	/** Returns CameraBoom subobject **/

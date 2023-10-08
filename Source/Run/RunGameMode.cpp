@@ -22,9 +22,13 @@ void ARunGameMode::BeginPlay()
 {
 	Super::BeginPlay();
 
-	for (int32 i = 0; i < 10; i++)
+	for (int32 i = 0; i < 5; i++)
 	{
 		AddFloorTile();
+		if (i == 4)
+		{
+			bStart = true;
+		}
 	}
 	
 
@@ -37,7 +41,16 @@ void ARunGameMode::AddFloorTile()
 		if (FloorTileNum < 8 && Floortile.Num() >0)
 		{
 			const int32 FloorIndex = FMath::RandRange(0, Floortile.Num()-1);
-			Floor = World->SpawnActor<AFloorTile>(Floortile[FloorIndex], SpawnTransform);
+
+
+			if (FloorTileNum == 4)
+			{
+				Floor = World->SpawnActor<AFloorTile>(Floortile[FloorIndex], SpawnTransform);
+			}
+			else
+			{
+				Floor = World->SpawnActor<AFloorTile>(Floortile[0], SpawnTransform);
+			}
 			FloorTileNum++;
 		}
 		else if(FloortileCorner.Num() > 0)
@@ -47,10 +60,23 @@ void ARunGameMode::AddFloorTile()
 			FloorTileNum = 0;
 		}
 		if (Floor)
-		{
+		{	
+			const int32 ItemSpawn = FMath::RandRange(0, 30);
 			SpawnTransform = Floor->GetAttachTransform();
-			Floor->BlockerCreate();
-			Floor->CoinCreate();
+			if (FloorTileNum == 3 || FloorTileNum == 4)
+			{
+				return;
+			}
+			if (bStart)
+			{
+				Floor->BlockerCreate();
+				Floor->CoinCreate();
+			}
+			if (ItemSpawn == 0)
+			{
+				Floor->ItemSpawn();
+			}
+
 		}
 	
 	}

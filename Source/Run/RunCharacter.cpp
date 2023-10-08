@@ -13,6 +13,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "MyHUD.h"
 #include "Characteroverlay.h"
+#include "DieWidget.h"
 
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
@@ -84,6 +85,19 @@ void ARunCharacter::Die()
 	{
 		UGameplayStatics::PlaySound2D(this, DieSound);
 	}
+	if (DieWidgetClass)
+	{
+		UDieWidget* DieWidget = CreateWidget<UDieWidget>(GetWorld(),DieWidgetClass);
+		if (DieWidget)
+		{
+			UE_LOG(LogTemp, Error, TEXT("Eror"));
+			DieWidget->SetTime(Time);
+			DieWidget->AddToViewport();
+		}
+	}
+	if (CharacterOverlay) 	CharacterOverlay->RemoveFromParent();
+
+	UGameplayStatics::SetGamePaused(this,true);
 }
 
 void ARunCharacter::BeginPlay()

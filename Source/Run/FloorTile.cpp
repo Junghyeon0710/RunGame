@@ -9,6 +9,7 @@
 #include "Blocker.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Coin.h"
+#include "Item.h"
 
 // Sets default values
 AFloorTile::AFloorTile()
@@ -50,6 +51,9 @@ AFloorTile::AFloorTile()
 	TurnBox->SetupAttachment(RootComponent);
 	TurnBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	TurnBox->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Ignore);
+
+	ItemSpawnPoint = CreateDefaultSubobject<UArrowComponent>(TEXT("ItemSpawnPoint"));
+	ItemSpawnPoint->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned
@@ -73,7 +77,8 @@ void AFloorTile::BoxBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActo
 		if (RunGameMode)
 		{
 			RunGameMode->AddFloorTile();
-			SetLifeSpan(5.f);
+			SetLifeSpan(3.f);
+
 		}
 	}
 }
@@ -91,7 +96,7 @@ void AFloorTile::TurnBoxBeginOverlap(UPrimitiveComponent* OverlappedComponent, A
 }
 
 void AFloorTile::WallOnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
-{
+{ 
 	if (OtherActor->IsA(ARunCharacter::StaticClass()))
 	{
 		ARunCharacter* RunCharacter = Cast<ARunCharacter>(OtherActor);
@@ -160,11 +165,23 @@ void AFloorTile::CoinCreate()
 			ACoin* Coin = World->SpawnActor<ACoin>(CoinClass, FTransform(CoinTrasnform));
 			if (Coin)
 			{
-				Coin->SetLifeSpan(15.f);
+				Coin->SetLifeSpan(20.f);
 			}
 		}
 	}
 	
+}
+
+void AFloorTile::ItemSpawn()
+{
+	if (ItemClass.Num() > 0)
+	{
+		const int32 ItemIndex = FMath::RandRange(0, ItemClass.Num() - 1);
+		AItem* Item = GetWorld()->SpawnActor<AItem>(ItemClass[ItemIndex], ItemSpawnPoint->GetComponentTransform());
+		UE_LOG(LogTemp, Error, TEXT("%d"), ItemIndex);
+		if (Item) Item->SetLifeSpan(20.f);
+
+	}
 }
 
 FTransform AFloorTile::GetAttachTransform() const
@@ -179,7 +196,7 @@ void AFloorTile::BlockerCreate()
 		const int32 Blockerindex = FMath::RandRange(0, SpawnPoints.Num() - 1);
 		Blocker = GetWorld()->SpawnActor<ABlocker>(SpawnBlocker, SpawnPoints[Blockerindex]);
 	}
-	if(Blocker) Blocker->SetLifeSpan(15.f);
+	if(Blocker) Blocker->SetLifeSpan(20.f);
 	
 }
 
