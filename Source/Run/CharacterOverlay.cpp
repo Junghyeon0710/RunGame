@@ -14,7 +14,7 @@ void UCharacterOverlay::SetCoin(int32 RunCoin)
 void UCharacterOverlay::SetTime(float DeltaTime)
 {
 	FString DeltaTimeText = FString::Printf(TEXT("%.2f"), DeltaTime);
-	Time->SetText(FText::FromString(DeltaTimeText));
+	ElapsedTime->SetText(FText::FromString(DeltaTimeText));
 	
 }
 

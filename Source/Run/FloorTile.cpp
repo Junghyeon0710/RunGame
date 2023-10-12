@@ -29,20 +29,20 @@ AFloorTile::AFloorTile()
 	Wall2 = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Wall2"));
 	Wall2->SetupAttachment(GetRootComponent());
 
-	AttachPoint = CreateDefaultSubobject<UArrowComponent>(TEXT("AttachPoint"));
-	AttachPoint->SetupAttachment(RootComponent);
+	AttachFloorPoint = CreateDefaultSubobject<UArrowComponent>(TEXT("AttachFloorPoint"));
+	AttachFloorPoint->SetupAttachment(RootComponent);
 
 	BoxPoint = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxComponent"));
 	BoxPoint->SetupAttachment(RootComponent);
 
-	SpawnPoint = CreateDefaultSubobject<UArrowComponent>(TEXT("SpawnPoint"));
-	SpawnPoint->SetupAttachment(RootComponent);
+	BlockerSpawnPoint = CreateDefaultSubobject<UArrowComponent>(TEXT("BlockerSpawnPoint"));
+	BlockerSpawnPoint->SetupAttachment(RootComponent);
 
-	SpawnPointL = CreateDefaultSubobject<UArrowComponent>(TEXT("SpawnPointL"));
-	SpawnPointL->SetupAttachment(RootComponent);
+	BlockerSpawnPointL = CreateDefaultSubobject<UArrowComponent>(TEXT("BlockerSpawnPointL"));
+	BlockerSpawnPointL->SetupAttachment(RootComponent);
 
-	SpawnPointR = CreateDefaultSubobject<UArrowComponent>(TEXT("SpawnPointR"));
-	SpawnPointR->SetupAttachment(RootComponent);
+	BlockerSpawnPointR = CreateDefaultSubobject<UArrowComponent>(TEXT("BlocekrSpawnPointR"));
+	BlockerSpawnPointR->SetupAttachment(RootComponent);
 
 	CoinBox = CreateDefaultSubobject<UBoxComponent>(TEXT("CoinBox"));
 	CoinBox->SetupAttachment(RootComponent);
@@ -78,7 +78,6 @@ void AFloorTile::BoxBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActo
 		{
 			RunGameMode->AddFloorTile();
 			SetLifeSpan(3.f);
-
 		}
 	}
 }
@@ -97,79 +96,47 @@ void AFloorTile::TurnBoxBeginOverlap(UPrimitiveComponent* OverlappedComponent, A
 
 void AFloorTile::WallOnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 { 
-	if (OtherActor->IsA(ARunCharacter::StaticClass()))
-	{
-		ARunCharacter* RunCharacter = Cast<ARunCharacter>(OtherActor);
-		if (RunCharacter)
-		{
-			//hitNormal 충돌한 지점에서 수직 백터
-			float a = FVector::DotProduct(Hit.Normal,RunCharacter->GetActorForwardVector());
-			if (FMath::IsNearlyEqual(a, 1, .01f))
-			{
-				RunCharacter->Die();
-			}
-		}
-		
-	}
+	IsCharacterFacingWall(OtherActor, Hit);
 }
 
 void AFloorTile::Wall2OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
-	if (OtherActor->IsA(ARunCharacter::StaticClass()))
-	{
-		ARunCharacter* RunCharacter = Cast<ARunCharacter>(OtherActor);
-		if (RunCharacter)
-		{
-			//hitNormal 충돌한 지점에서 수직 백터
-			float a = FVector::DotProduct(Hit.Normal, RunCharacter->GetActorForwardVector());
-			if (FMath::IsNearlyEqual(a, 1, .01f))
-			{
-				RunCharacter->Die();
-			}
-		}
-
-	}
-}
-
-// Called every frame
-void AFloorTile::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
+	IsCharacterFacingWall(OtherActor, Hit);
 }
 
 void AFloorTile::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
 
-	SetSpawnPoints();
+	SetBlockerSpawnPoints();
 }
 
-void AFloorTile::SetSpawnPoints()
+void AFloorTile::SetBlockerSpawnPoints()
 {
-	SpawnPoints.Add(SpawnPoint->GetComponentTransform());
-	SpawnPoints.Add(SpawnPointL->GetComponentTransform());
-	SpawnPoints.Add(SpawnPointR->GetComponentTransform());
+	BlockerSpawnPoints.Add(BlockerSpawnPoint->GetComponentTransform());
+	BlockerSpawnPoints.Add(BlockerSpawnPointL->GetComponentTransform());
+	BlockerSpawnPoints.Add(BlockerSpawnPointR->GetComponentTransform());
 }
 
 void AFloorTile::CoinCreate()
 {
 	UWorld* World = GetWorld();
-	if (CoinClass && World)
+	if (!CoinClass || !World)
 	{
-		UE_LOG(LogTemp, Display, TEXT("124"));
+		return;
+	}
+
+	for (int32 i = 0; i < 2; i++)
+	{
+		FVector CoinTrasnform = UKismetMathLibrary::RandomPointInBoundingBox(CoinBox->GetComponentLocation(), CoinBox->GetScaledBoxExtent());
 		
-		for (int32 i = 0; i < 2; i++)
+		ACoin* Coin = World->SpawnActor<ACoin>(CoinClass, FTransform(CoinTrasnform));
+		if (Coin)
 		{
-			FVector CoinTrasnform = UKismetMathLibrary::RandomPointInBoundingBox(CoinBox->GetComponentLocation(), CoinBox->GetScaledBoxExtent());
-			ACoin* Coin = World->SpawnActor<ACoin>(CoinClass, FTransform(CoinTrasnform));
-			if (Coin)
-			{
-				Coin->SetLifeSpan(20.f);
-			}
+			// 동전의 수명 설정 (예: 20초)
+			Coin->SetLifeSpan(20.f);
 		}
 	}
-	
 }
 
 void AFloorTile::ItemSpawn()
@@ -178,25 +145,43 @@ void AFloorTile::ItemSpawn()
 	{
 		const int32 ItemIndex = FMath::RandRange(0, ItemClass.Num() - 1);
 		AItem* Item = GetWorld()->SpawnActor<AItem>(ItemClass[ItemIndex], ItemSpawnPoint->GetComponentTransform());
-		UE_LOG(LogTemp, Error, TEXT("%d"), ItemIndex);
 		if (Item) Item->SetLifeSpan(20.f);
 
 	}
 }
 
-FTransform AFloorTile::GetAttachTransform() const
+void AFloorTile::IsCharacterFacingWall(AActor* OtherActor, const FHitResult& Hit)
 {
-	return AttachPoint->GetComponentTransform();
+	if (OtherActor && OtherActor->IsA(ARunCharacter::StaticClass()))
+	{
+		ARunCharacter* RunCharacter = Cast<ARunCharacter>(OtherActor);
+		if (RunCharacter)
+		{
+			// 충돌 지점에서 벽의 방향과 캐릭터의 전방 방향 사이의 내적 계산
+			float DotProduct = FVector::DotProduct(Hit.Normal, RunCharacter->GetActorForwardVector());
+
+			// 두 벡터의 내적이 거의 1인 경우 (벽과 캐릭터의 방향이 거의 일치)
+			if (FMath::IsNearlyEqual(DotProduct, 1, .01f))
+			{
+				// 캐릭터를 죽음 처리
+				RunCharacter->Die();
+			}
+		}
+	}
+}
+
+FTransform AFloorTile::GetAttachFloorTransform() const
+{
+	return BlockerSpawnPoint->GetComponentTransform();
 }
 
 void AFloorTile::BlockerCreate()
 {
-	if (SpawnPoints.Num() > 0)
+	if (BlockerSpawnPoints.Num() > 0)
 	{
-		const int32 Blockerindex = FMath::RandRange(0, SpawnPoints.Num() - 1);
-		Blocker = GetWorld()->SpawnActor<ABlocker>(SpawnBlocker, SpawnPoints[Blockerindex]);
+		const int32 Blockerindex = FMath::RandRange(0, BlockerSpawnPoints.Num() - 1);
+		ABlocker* Blocker = GetWorld()->SpawnActor<ABlocker>(SpawnBlocker, BlockerSpawnPoints[Blockerindex]);
+		if (Blocker) Blocker->SetLifeSpan(20.f);
 	}
-	if(Blocker) Blocker->SetLifeSpan(20.f);
-	
 }
 

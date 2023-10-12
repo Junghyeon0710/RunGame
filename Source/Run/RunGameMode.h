@@ -15,28 +15,29 @@ public:
 	ARunGameMode();
 
 	void AddFloorTile();
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
 private:
 
+	/** ¹Ù´Ú */ 
 	UPROPERTY(EditAnywhere)
-	TArray<TSubclassOf<class AFloorTile>> Floortile;
+	TArray<TSubclassOf<class AFloorTile>> FloortileClass;
 
 	UPROPERTY(EditAnywhere)
-	TArray<TSubclassOf<class AFloorTile>> FloortileCorner;
+	TArray<TSubclassOf<class AFloorTile>> FloortileCornerClass;
 
 	UPROPERTY(VisibleAnywhere)
-	FTransform SpawnTransform;
+	FTransform FloorSpawnTransform;
 
 	UPROPERTY(EditAnywhere)
 	int32 FloorTileNum;
 
 	AFloorTile* Floor;
 
-	bool bStart = false;
-
+	bool bIsStart = false;
 
 };
 

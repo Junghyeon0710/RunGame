@@ -32,54 +32,57 @@ protected:
 	void Wall2OnHit(UPrimitiveComponent* HitComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 	virtual void OnConstruction(const FTransform& Transform) override;
 
-	void SetSpawnPoints();
+	void SetBlockerSpawnPoints();
 
-	
 private:
 
 	UPROPERTY(VisibleAnywhere)
 	class USceneComponent* Scene;
 
+	/** 바닥 */
 	UPROPERTY(VisibleAnywhere)
 	class UStaticMeshComponent* Floor;
 
+	/** 벽 */
 	UPROPERTY(VisibleAnywhere)
 	class UStaticMeshComponent* Wall;
 
 	UPROPERTY(VisibleAnywhere)
 	class UStaticMeshComponent* Wall2;
 
+	/** 다음 바닥에 스폰해서 이어 붙일 포인트 */
 	UPROPERTY(VisibleAnywhere)
-	class UArrowComponent* AttachPoint;
+	class UArrowComponent* AttachFloorPoint;
 
+	/** 박스 포인트 */
 	UPROPERTY(VisibleAnywhere)
 	class UBoxComponent* BoxPoint;
 
+	/** 바위*/
 	UPROPERTY(VisibleAnywhere)
-	class UArrowComponent* SpawnPoint;
+	class UArrowComponent* BlockerSpawnPoint;
 
 	UPROPERTY(VisibleAnywhere)
-	class UArrowComponent* SpawnPointL;
+	class UArrowComponent* BlockerSpawnPointL;
 
 	UPROPERTY(VisibleAnywhere)
-	class UArrowComponent* SpawnPointR;
-
-	UPROPERTY(VisibleAnywhere)
-	class UBoxComponent* CoinBox;
-
-	UPROPERTY(VisibleAnywhere)
-	TArray<FTransform> SpawnPoints;
+	class UArrowComponent* BlockerSpawnPointR;
 
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class ABlocker> SpawnBlocker;
 
-	UPROPERTY()
-	class ABlocker* Blocker; 
+	UPROPERTY(VisibleAnywhere)
+	TArray<FTransform> BlockerSpawnPoints;
 
+	void IsCharacterFacingWall(AActor* OtherActor, const FHitResult& Hit);
+		
+	/** 코인 */
+	UPROPERTY(VisibleAnywhere)
+	class UBoxComponent* CoinBox;
+
+	/** 아이템 */
 	UPROPERTY(VisibleAnywhere)
 	class UArrowComponent* ItemSpawnPoint;
 
@@ -89,13 +92,12 @@ private:
 	UPROPERTY(EditAnywhere)
 	TSubclassOf<class ACoin> CoinClass;
 
+	/** 캐릭터 턴 박스 */
 	UPROPERTY(VisibleAnywhere)
 	class UBoxComponent* TurnBox;
 
-	bool bOverlap = false;
-
 public:
-	FTransform GetAttachTransform() const;
+	FTransform GetAttachFloorTransform() const;
 	void BlockerCreate();
 	void CoinCreate();
 	void ItemSpawn();

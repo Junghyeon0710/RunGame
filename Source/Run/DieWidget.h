@@ -14,8 +14,9 @@ class RUN_API UDieWidget : public UUserWidget
 {
 	GENERATED_BODY()
 public:
-	void SetTime(float DeltaTime);
+
+	void SetGameElapsedTime(float DeltaTime);
 
 	UPROPERTY(meta = (BindWidget))
-	class UTextBlock* Time;
+	class UTextBlock* GameElapsedTime;
 };

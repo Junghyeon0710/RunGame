@@ -24,6 +24,7 @@ DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 ARunCharacter::ARunCharacter()
 {
 	PrimaryActorTick.bCanEverTick = true;
+
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
 		
@@ -65,69 +66,50 @@ ARunCharacter::ARunCharacter()
 
 void ARunCharacter::Tick(float DeltaTime)
 {
-	if (!bHit)
-	{
-		AddMovementInput(GetActorForwardVector(), 1.f);
-		Move(0.f);
-		TurnCorner();
-	}
-	if (CharacterOverlay)
-	{
-		CharacterOverlay->SetTime(Time +=DeltaTime);
-	}
+	HandleMovement();
+	UpdateTimeOnCharacterOverlay(DeltaTime);
 }
 
+// 캐릭터가 사망할 때 호출되는 함수
 void ARunCharacter::Die()
 {
+	// 플레이어 컨트롤러의 입력 비활성화
 	DisableInput(GetWorld()->GetFirstPlayerController());
-	bHit = true;
+
+	// 피격 상태를 활성화
+	bIsHit = true;
+
+	// DieSound가 설정되어 있으면 2D 사운드 재생
 	if (DieSound)
 	{
 		UGameplayStatics::PlaySound2D(this, DieSound);
 	}
+
+	// DieWidgetClass가 설정되어 있으면 DieWidget을 생성하여 화면에 추가
 	if (DieWidgetClass)
 	{
-		UDieWidget* DieWidget = CreateWidget<UDieWidget>(GetWorld(),DieWidgetClass);
+		UDieWidget* DieWidget = CreateWidget<UDieWidget>(GetWorld(), DieWidgetClass);
 		if (DieWidget)
 		{
-			UE_LOG(LogTemp, Error, TEXT("Eror"));
-			DieWidget->SetTime(Time);
+			// DieWidget에 시간 설정
+			DieWidget->SetGameElapsedTime(GameElapsedTime);
 			DieWidget->AddToViewport();
 		}
 	}
-	if (CharacterOverlay) 	CharacterOverlay->RemoveFromParent();
 
-	UGameplayStatics::SetGamePaused(this,true);
+	// CharacterOverlay가 설정되어 있으면 화면에서 제거
+	if (CharacterOverlay)
+	{
+		CharacterOverlay->RemoveFromParent();
+	}
 }
 
 void ARunCharacter::BeginPlay()
 {
 	// Call the base class  
 	Super::BeginPlay();
-
-	//Add Input Mapping Context
-	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
-	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
-		{
-			Subsystem->AddMappingContext(DefaultMappingContext, 0);
-			
-		}
-	}
-	APlayerController* PlayerController = Cast<APlayerController>(GetController());
-	if (PlayerController)
-	{
-		AMyHUD* MyHUD = Cast<AMyHUD>(PlayerController->GetHUD());
-		if (MyHUD)
-		{
-			CharacterOverlay = MyHUD->GetCharacterOverlay();
-			if (CharacterOverlay)
-			{
-				CharacterOverlay->SetCoin(Coin);
-				CharacterOverlay->SetTime(GetWorld()->DeltaRealTimeSeconds);
-			}
-		}	
-	}
+	InitializeInputMappingContext();
+	InitializeCharacterOverlay();
 }
 
 void ARunCharacter::PlusCoin()
@@ -152,8 +134,6 @@ void ARunCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCompon
 
 		// Moving
 		EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ARunCharacter::Move);
-		// Looking
-		//EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ARunCharacter::Look);
 		EnhancedInputComponent->BindAction(AAction, ETriggerEvent::Started, this, &ARunCharacter::AInput);
 		EnhancedInputComponent->BindAction(DAction, ETriggerEvent::Started, this, &ARunCharacter::DInput);
 	}
@@ -177,19 +157,29 @@ void ARunCharacter::Move(const FInputActionValue& Value)
 	}
 }
 
-//A키 누르면
+// A 키를 눌렀을 때 호출되는 함수
 void ARunCharacter::AInput()
 {
+	// 회전이 가능한 상태가 아니면 함수 종료
 	if (!bCanTurn) return;
-	DesiredRotation += FRotator(0.f, -90.f, 0.f);
-	bCanTurn = false;
 
+	// 원하는 회전값에 -90도의 Yaw 회전을 추가
+	DesiredRotation += FRotator(0.f, -90.f, 0.f);
+
+	// 회전을 한 번 수행했으므로 회전 상태를 비활성화
+	bCanTurn = false;
 }
-//D키 누르면
+
+// D 키를 눌렀을 때 호출되는 함수
 void ARunCharacter::DInput()
 {
+	// 회전이 가능한 상태가 아니면 함수 종료
 	if (!bCanTurn) return;
+
+	// 원하는 회전값에 90도의 Yaw 회전을 추가
 	DesiredRotation += FRotator(0.f, 90.f, 0.f);
+
+	// 회전을 한 번 수행했으므로 회전 상태를 비활성화
 	bCanTurn = false;
 }
 
@@ -198,13 +188,94 @@ void ARunCharacter::TurnCorner()
 {
 	if (Controller)
 	{
+		// 현재 캐릭터의 회전값 가져오기
 		FRotator Rotation = GetControlRotation();
+
+		// 목표 회전값과 현재 회전값 비교
 		if (DesiredRotation != Rotation)
 		{
-			FRotator CRotation = FMath::RInterpTo(Rotation, DesiredRotation, GetWorld()->DeltaTimeSeconds, 45.f);
-			APlayerController* PlayerConroller = UGameplayStatics::GetPlayerController(this, 0);
-			PlayerConroller->SetControlRotation(CRotation);
-			
+			// 보간된 회전값 계산 (매 프레임마다 약간씩 회전을 조절)
+			FRotator InterpolatedRotation = FMath::RInterpTo(Rotation, DesiredRotation, GetWorld()->DeltaTimeSeconds, 45.f);
+
+			// 플레이어 컨트롤러를 가져오고 회전값 설정
+			APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
+			if (PlayerController)
+			{
+				PlayerController->SetControlRotation(InterpolatedRotation);
+			}
 		}
+	}
+}
+
+// 초기 입력 매핑 컨텍스트 설정
+void ARunCharacter::InitializeInputMappingContext()
+{
+	APlayerController* PlayerController = Cast<APlayerController>(Controller);
+	if (PlayerController)
+	{
+		UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer());
+		if (Subsystem)
+		{
+			// 기본 매핑 컨텍스트 추가 (인덱스 0 사용)
+			Subsystem->AddMappingContext(DefaultMappingContext, 0);
+		}
+		else
+		{
+			// Enhanced Input 서브시스템을 찾을 수 없을 때 오류 메시지 출력
+			UE_LOG(LogTemplateCharacter, Error, TEXT("Failed to find Enhanced Input subsystem!"));
+		}
+	}
+	else
+	{
+		// 플레이어 컨트롤러를 찾을 수 없을 때 오류 메시지 출력
+		UE_LOG(LogTemplateCharacter, Error, TEXT("Failed to find PlayerController!"));
+	}
+}
+
+// CharacterOverlay 초기화
+void ARunCharacter::InitializeCharacterOverlay()
+{
+	APlayerController* PlayerController = Cast<APlayerController>(GetController());
+	if (PlayerController)
+	{
+		// 플레이어 컨트롤러에서 HUD 가져오기
+		AMyHUD* MyHUD = Cast<AMyHUD>(PlayerController->GetHUD());
+		if (MyHUD)
+		{
+			// CharacterOverlay 설정 및 초기화
+			CharacterOverlay = MyHUD->GetCharacterOverlay();
+			if (CharacterOverlay)
+			{
+				CharacterOverlay->SetCoin(Coin);
+				CharacterOverlay->SetTime(GetWorld()->DeltaRealTimeSeconds);
+			}
+		}
+	}
+	else
+	{
+		// 플레이어 컨트롤러를 찾을 수 없을 때 오류 메시지 출력
+		UE_LOG(LogTemplateCharacter, Error, TEXT("Failed to find PlayerController for initializing CharacterOverlay!"));
+	}
+}
+
+// 캐릭터의 움직임 처리
+void ARunCharacter::HandleMovement()
+{
+	if (!bIsHit)
+	{
+		// 캐릭터를 현재 바라보는 방향으로 1.0 단위만큼 이동
+		AddMovementInput(GetActorForwardVector(), 1.f);
+		
+		Move(0.f);
+
+		TurnCorner();
+	}
+}
+
+void ARunCharacter::UpdateTimeOnCharacterOverlay(float DeltaTime)
+{
+	if (CharacterOverlay)
+	{
+		CharacterOverlay->SetTime(GameElapsedTime += DeltaTime);
 	}
 }

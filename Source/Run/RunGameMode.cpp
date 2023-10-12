@@ -17,7 +17,6 @@ ARunGameMode::ARunGameMode()
 	}
 }
 
-
 void ARunGameMode::BeginPlay()
 {
 	Super::BeginPlay();
@@ -27,58 +26,58 @@ void ARunGameMode::BeginPlay()
 		AddFloorTile();
 		if (i == 4)
 		{
-			bStart = true;
+			bIsStart = true;
 		}
 	}
-	
-
 }
+
 void ARunGameMode::AddFloorTile()
 {
-	UWorld* World = GetWorld();
-	if (World)
-	{
-		if (FloorTileNum < 8 && Floortile.Num() >0)
-		{
-			const int32 FloorIndex = FMath::RandRange(0, Floortile.Num()-1);
+    UWorld* World = GetWorld();
+    if (!World)
+    {
+        return;
+    }
 
+    // 필요한 블럭 클래스 배열 선택
+    const TArray<TSubclassOf<AFloorTile>>& FloorTileClasses = (FloorTileNum < 8) ? FloortileClass : FloortileCornerClass;
 
-			if (FloorTileNum == 4)
-			{
-				Floor = World->SpawnActor<AFloorTile>(Floortile[FloorIndex], SpawnTransform);
-			}
-			else
-			{
-				Floor = World->SpawnActor<AFloorTile>(Floortile[0], SpawnTransform);
-			}
-			FloorTileNum++;
-		}
-		else if(FloortileCorner.Num() > 0)
-		{
-			const int32 FloorIndexCorner = FMath::RandRange(0, FloortileCorner.Num()-1);
-			Floor = World->SpawnActor<AFloorTile>(FloortileCorner[FloorIndexCorner], SpawnTransform);
-			FloorTileNum = 0;
-		}
-		if (Floor)
-		{	
-			const int32 ItemSpawn = FMath::RandRange(0, 30);
-			SpawnTransform = Floor->GetAttachTransform();
-			if (FloorTileNum == 3 || FloorTileNum == 4)
-			{
-				return;
-			}
-			if (bStart)
-			{
-				Floor->BlockerCreate();
-				Floor->CoinCreate();
-			}
-			if (ItemSpawn == 0)
-			{
-				Floor->ItemSpawn();
-			}
+    if (FloorTileClasses.Num() == 0)
+    {
+        return;
+    }
 
-		}
-	
-	}
+    // 임의의 블럭 클래스 선택
+    const int32 RandomFloorIndex = FMath::RandRange(0, FloorTileClasses.Num() - 1);
+    Floor = World->SpawnActor<AFloorTile>(FloorTileClasses[RandomFloorIndex], FloorSpawnTransform);
+
+    if (Floor)
+    {
+        // 아이템 스폰 확률
+        const int32 ItemSpawn = FMath::RandRange(0, 30);
+        FloorSpawnTransform = Floor->GetAttachFloorTransform();
+
+        // 3번째 또는 4번째 블럭의 경우 아무 작업도 수행하지 않음
+        if (FloorTileNum == 3 || FloorTileNum == 4)
+        {
+            return;
+        }
+
+        if (bIsStart)
+        {
+            // Blocker 및 Coin 생성
+            Floor->BlockerCreate();
+            Floor->CoinCreate();
+        }
+
+        if (ItemSpawn == 0)
+        {
+            // 아이템 스폰
+            Floor->ItemSpawn();
+        }
+    }
+
+    // FloorTileNum 업데이트
+    FloorTileNum = (FloorTileNum < 8) ? FloorTileNum + 1 : 0;
 }
 

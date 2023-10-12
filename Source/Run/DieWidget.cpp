@@ -4,9 +4,9 @@
 #include "DieWidget.h"
 #include <Components/TextBlock.h>
 
-void UDieWidget::SetTime(float DeltaTime)
+void UDieWidget::SetGameElapsedTime(float DeltaTime)
 {
 	FString DeltaTimeText = FString::Printf(TEXT("Time : %.2f"), DeltaTime);
-	Time->SetText(FText::FromString(DeltaTimeText));
+	GameElapsedTime->SetText(FText::FromString(DeltaTimeText));
 
 }

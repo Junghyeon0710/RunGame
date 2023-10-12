@@ -53,38 +53,34 @@ class ARunCharacter : public ACharacter
 	UInputAction* DAction;
 
 public:
-	ARunCharacter();
-	virtual void Tick(float DeltaTime)override;
 
+	ARunCharacter();
+
+	virtual void Tick(float DeltaTime)override;
+	
+	// 캐릭터가 사망할 때 호출되는 함수
 	void Die();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
-	bool bSpeedBoom = false;
-protected:
-
-	/** Called for movement input */
-	void Move(const FInputActionValue& Value);
-
-	/** Called for looking input */
-	void Look(const FInputActionValue& Value);
-			
-	void AInput();
-
-	void DInput();
-
-	void TurnCorner();
-
-
+	bool bhasSpeedBoom = false;
 
 protected:
+
 	// APawn interface
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
-	
+
 	// To add mapping context
 	virtual void BeginPlay();
 
+	/** Called for movement input */
+	void Move(const FInputActionValue& Value);
+	
+	/** 키 입력 호출 함수 */
+	void AInput();
+	void DInput();
+	void TurnCorner();
 
-
+	// 원하는 회전값
 	UPROPERTY(VisibleAnywhere)
 	FRotator DesiredRotation;
 
@@ -92,14 +88,25 @@ protected:
 	bool bCanTurn;
 
 	UPROPERTY(BlueprintReadOnly)
-	float Time;
+	float GameElapsedTime;
 
 private:
-	bool bHit = false;
+	// Input Mapping Context 초기화
+	void InitializeInputMappingContext();
+
+	// Character Overlay 초기화
+	void InitializeCharacterOverlay();
+
+	// 캐릭터 이동 처리
+	void HandleMovement();
+
+	// Character Overlay에 시간 업데이트
+	void UpdateTimeOnCharacterOverlay(float DeltaTime);
+
+	//캐릭터가 충돌되었는가
+	bool bIsHit = false;
 
 	int32 Coin = 0;
-
-
 
 	UPROPERTY()
 	class UCharacterOverlay* CharacterOverlay;
@@ -117,7 +124,7 @@ public:
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 
 	FORCEINLINE void SetCanTurn(bool CanTurn) { bCanTurn = CanTurn; }
-	FORCEINLINE void SetHit(bool Hit) { bHit = Hit; }
+	FORCEINLINE void SetHit(bool Hit) { bIsHit = Hit; }
 	void PlusCoin();
 };
 
