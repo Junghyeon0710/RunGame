@@ -19,6 +19,10 @@ public:
 	// 경과 시간을 설정하는 함수
 	void SetTime(float DeltaTime);
 
+	// 경과 시간을 설정하는 함수
+	UFUNCTION(BlueprintCallable)
+	void SetTopScore(int32 InScore);
+
 private:
 	// 코인을 나타내는 텍스트 블록 위젯
 	UPROPERTY(meta = (BindWidget))
@@ -27,4 +31,7 @@ private:
 	// 경과 시간을 나타내는 텍스트 블록 위젯
 	UPROPERTY(meta = (BindWidget))
 	class UTextBlock* ElapsedTime;
+
+	UPROPERTY(meta = (BindWidget))
+	class UTextBlock* TopScore;
 };

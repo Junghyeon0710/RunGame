@@ -6,7 +6,7 @@
 
 void UDieWidget::SetGameElapsedTime(float DeltaTime)
 {
-	FString DeltaTimeText = FString::Printf(TEXT("Time : %.2f"), DeltaTime);
+	FString DeltaTimeText = FString::Printf(TEXT("TopScore : %.2f"), DeltaTime);
 	GameElapsedTime->SetText(FText::FromString(DeltaTimeText));
 
 }

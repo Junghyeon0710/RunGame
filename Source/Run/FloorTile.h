@@ -23,6 +23,9 @@ protected:
 	void BoxBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	UFUNCTION()
+	void OnBoxEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+	UFUNCTION()
 	void TurnBoxBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
 	UFUNCTION()
@@ -36,7 +39,7 @@ public:
 
 	void SetBlockerSpawnPoints();
 
-private:
+protected:
 
 	UPROPERTY(VisibleAnywhere)
 	class USceneComponent* Scene;
@@ -53,11 +56,11 @@ private:
 	class UStaticMeshComponent* Wall2;
 
 	/** 다음 바닥에 스폰해서 이어 붙일 포인트 */
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
 	class UArrowComponent* AttachFloorPoint;
 
 	/** 박스 포인트 */
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	class UBoxComponent* BoxPoint;
 
 	/** 바위*/
@@ -71,7 +74,7 @@ private:
 	class UArrowComponent* BlockerSpawnPointR;
 
 	UPROPERTY(EditAnywhere)
-	TSubclassOf<class ABlocker> SpawnBlocker;
+	TArray<TSubclassOf<class ABlocker>> SpawnBlockers;
 
 	UPROPERTY(VisibleAnywhere)
 	TArray<FTransform> BlockerSpawnPoints;
@@ -95,6 +98,10 @@ private:
 	/** 캐릭터 턴 박스 */
 	UPROPERTY(VisibleAnywhere)
 	class UBoxComponent* TurnBox;
+
+	bool bIsBoxOverlap = false;
+
+
 
 public:
 	FTransform GetAttachFloorTransform() const;

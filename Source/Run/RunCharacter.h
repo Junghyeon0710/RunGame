@@ -59,10 +59,15 @@ public:
 	virtual void Tick(float DeltaTime)override;
 	
 	// 캐릭터가 사망할 때 호출되는 함수
+	UFUNCTION(BlueprintCallable,BlueprintNativeEvent)
 	void Die();
+	virtual void Die_Implementation();
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite)
 	bool bhasSpeedBoom = false;
+
+	UPROPERTY(BlueprintReadWrite)
+	bool bHasMagnet = false;
 
 protected:
 
@@ -90,6 +95,15 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 	float GameElapsedTime;
 
+	UPROPERTY(VisibleAnywhere,BlueprintReadWrite)
+	int32 TopScore =0;
+
+	UPROPERTY(BlueprintReadOnly)
+	int32 Coin = 0;
+
+	UPROPERTY(BlueprintReadOnly)
+	class UCharacterOverlay* CharacterOverlay;
+
 private:
 	// Input Mapping Context 초기화
 	void InitializeInputMappingContext();
@@ -105,11 +119,6 @@ private:
 
 	//캐릭터가 충돌되었는가
 	bool bIsHit = false;
-
-	int32 Coin = 0;
-
-	UPROPERTY()
-	class UCharacterOverlay* CharacterOverlay;
 
 	UPROPERTY(EditAnywhere)
 	class USoundBase* DieSound;

@@ -23,9 +23,9 @@ protected:
 	UFUNCTION()
 	virtual void SphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 
-private:
+protected:
 
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(VisibleAnywhere,BlueprintReadOnly)
 	class USphereComponent* Sphere;
 
 	UPROPERTY(VisibleAnywhere)
@@ -33,4 +33,5 @@ private:
 
 	UPROPERTY(EditAnywhere)
 	class USoundBase* ItemSound;
+
 };

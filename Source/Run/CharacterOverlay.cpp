@@ -18,5 +18,11 @@ void UCharacterOverlay::SetTime(float DeltaTime)
 	
 }
 
+void UCharacterOverlay::SetTopScore(int32 InScore)
+{
+	FString TopScoreText = FString::Printf(TEXT("%d"), InScore);
+	TopScore->SetText(FText::FromString(TopScoreText));
+}
+
 
 

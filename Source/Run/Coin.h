@@ -17,6 +17,6 @@ class RUN_API ACoin : public AItem
 protected:
 	virtual void SphereBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult) override;
 	
-	UPROPERTY(BlueprintReadWrite)
-	bool bHasMagnet = false;
+
+
 };

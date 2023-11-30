@@ -66,12 +66,12 @@ ARunCharacter::ARunCharacter()
 
 void ARunCharacter::Tick(float DeltaTime)
 {
+	Super::Tick(DeltaTime);
 	HandleMovement();
 	UpdateTimeOnCharacterOverlay(DeltaTime);
 }
 
-// 캐릭터가 사망할 때 호출되는 함수
-void ARunCharacter::Die()
+void ARunCharacter::Die_Implementation()
 {
 	// 플레이어 컨트롤러의 입력 비활성화
 	DisableInput(GetWorld()->GetFirstPlayerController());
@@ -92,7 +92,8 @@ void ARunCharacter::Die()
 		if (DieWidget)
 		{
 			// DieWidget에 시간 설정
-			DieWidget->SetGameElapsedTime(GameElapsedTime);
+			TopScore = Coin + static_cast<int>(GameElapsedTime);
+			DieWidget->SetGameElapsedTime(TopScore);
 			DieWidget->AddToViewport();
 		}
 	}
@@ -106,10 +107,12 @@ void ARunCharacter::Die()
 
 void ARunCharacter::BeginPlay()
 {
-	// Call the base class  
-	Super::BeginPlay();
+
+
 	InitializeInputMappingContext();
 	InitializeCharacterOverlay();
+
+	Super::BeginPlay();
 }
 
 void ARunCharacter::PlusCoin()
@@ -202,9 +205,11 @@ void ARunCharacter::TurnCorner()
 			if (PlayerController)
 			{
 				PlayerController->SetControlRotation(InterpolatedRotation);
+
 			}
 		}
 	}
+	
 }
 
 // 초기 입력 매핑 컨텍스트 설정

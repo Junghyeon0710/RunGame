@@ -62,6 +62,7 @@ void AFloorTile::BeginPlay()
 	Super::BeginPlay();
 
 	BoxPoint->OnComponentBeginOverlap.AddDynamic(this, &AFloorTile::BoxBeginOverlap);
+	BoxPoint->OnComponentEndOverlap.AddDynamic(this, &AFloorTile::OnBoxEndOverlap);
 	TurnBox->OnComponentBeginOverlap.AddDynamic(this, &AFloorTile::TurnBoxBeginOverlap);
 
 	Wall->OnComponentHit.AddDynamic(this, &AFloorTile::WallOnHit);
@@ -70,6 +71,8 @@ void AFloorTile::BeginPlay()
 
 void AFloorTile::BoxBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
+	//if (bIsBoxOverlap == true) return;
+	//bIsBoxOverlap = true;
 	UWorld* World = GetWorld();
 	if (World && OtherActor->IsA(ARunCharacter::StaticClass()))
 	{
@@ -77,9 +80,14 @@ void AFloorTile::BoxBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActo
 		if (RunGameMode)
 		{
 			RunGameMode->AddFloorTile();
-			SetLifeSpan(3.f);
+		
 		}
 	}
+}
+
+void AFloorTile::OnBoxEndOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	//bIsBoxOverlap = false;
 }
 
 void AFloorTile::TurnBoxBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -172,7 +180,7 @@ void AFloorTile::IsCharacterFacingWall(AActor* OtherActor, const FHitResult& Hit
 
 FTransform AFloorTile::GetAttachFloorTransform() const
 {
-	return BlockerSpawnPoint->GetComponentTransform();
+	return AttachFloorPoint->GetComponentTransform();
 }
 
 void AFloorTile::BlockerCreate()
@@ -180,7 +188,10 @@ void AFloorTile::BlockerCreate()
 	if (BlockerSpawnPoints.Num() > 0)
 	{
 		const int32 Blockerindex = FMath::RandRange(0, BlockerSpawnPoints.Num() - 1);
-		ABlocker* Blocker = GetWorld()->SpawnActor<ABlocker>(SpawnBlocker, BlockerSpawnPoints[Blockerindex]);
+		if (SpawnBlockers.Num() == 0) return;
+		const int32 BlockerClassNum = FMath::RandRange(0, SpawnBlockers.Num() - 1);
+
+		ABlocker* Blocker = GetWorld()->SpawnActor<ABlocker>(SpawnBlockers[BlockerClassNum], BlockerSpawnPoints[Blockerindex]);
 		if (Blocker) Blocker->SetLifeSpan(20.f);
 	}
 }
