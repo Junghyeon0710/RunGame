@@ -1,10 +1,9 @@
 ## Unreal5 : RunGame
-포토폴리오 목적으로 제작된 간단한 런게임입니다.
+포트폴리오 목적으로 제작된 간단한 런게임입니다.
 
 - 엔진 : Unreal Engine 5.3
 - IDE : Visual Studio 2022
 - 툴 : C++ , Blueprint 혼합사용
-- 제작기간 : 일주일
 - 인원 : 개인 개발
 
 ## 영상
@@ -180,3 +179,5 @@ void ARunGameMode::AddFloorTile()
  - 게임 시간 표시
  ### UI : DieWidget
  - 게임 사망시 Die문구와 TopScore표시
+ - 재시작 버튼 클릭시 Level 재시작
+ - 끝내기 버튼 클릭시 Quit Game
