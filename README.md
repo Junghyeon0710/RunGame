@@ -15,7 +15,7 @@
 ### Character Movement
 - 앞으로 자동으로 달리기
 - A,D 키로 좌우로 움직일 수 있음
-- 턴 지점이 오면 90도 턴
+- 턴 지점이 오면 컨트롤러를 SetControlRotation로 90도 턴
 
 ```C++
   // A 키를 눌렀을 때 호출되는 함수
@@ -145,7 +145,7 @@ void ARunGameMode::AddFloorTile()
 
 ### Item : SpeedBoom
   - 먹을 시 머트리얼 빨갛게 변경
-  - 장애물을 다 파괴
+  - 장애물을 Destroy후 파티클 효과
   - MaxWalkSpeed 증가
 
 ## FloorTile
@@ -159,9 +159,24 @@ void ARunGameMode::AddFloorTile()
   ### 기능
   - 장애물 부딪힐시 사망
   - 마주보는 벽 부딪힐시 사망
+    - 충돌 지점에서 벽의 방향과 캐릭터의 전방 방향 사이의 내적 계산
+    - DotProduct함수를 사용하여 HitReulst.Nomal(벽의 방향),RunCharacter->ForwardVector(캐릭터의 전방 방향) 내적 계산
+    - IsNearlyEqual함수를 이용하여 두 벡터의 내적이 거의 1인 경우 (마주보는 벽) 
   - 캐릭터 턴
 
 #### FloorTile 블루프린트
+![캡처](https://github.com/Junghyeon0710/RunGame/assets/133496610/fa375ede-a68d-4f51-b377-a5c573181073)
+#### FloorTile 기반으로 원하는 바닥 모양을 만들 수 있게 구현
+![캡처](https://github.com/Junghyeon0710/RunGame/assets/133496610/5d2151a3-01c9-481c-b8af-d03b9d062fb6)
 
-    
 
+## Save Game
+- 최고점수 관리
+- 사망시 현재 점수랑 최고점수 비교후 높은 값 Save
+
+## UI
+ ### UI : HUD
+ - 먹은 코인 갯수 표시
+ - 게임 시간 표시
+ ### UI : DieWidget
+ - 게임 사망시 Die문구와 TopScore표시
