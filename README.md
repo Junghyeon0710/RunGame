@@ -7,6 +7,7 @@
 - 인원 : 혼자
 
 ## 영상
+[![Video Label](http://img.youtube.com/vi/'https://www.youtube.com/watch?v=VhnznJZvzk4'/0.jpg)](https://youtu.be/'https://www.youtube.com/watch?v=VhnznJZvzk4')
 
 ## 기술 설명
 
