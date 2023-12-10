@@ -7,7 +7,12 @@
 - 인원 : 혼자
 
 ## 영상
-[![Video Label](http://img.youtube.com/vi/'https://www.youtube.com/watch?v=VhnznJZvzk4'/0.jpg)](https://youtu.be/'https://www.youtube.com/watch?v=VhnznJZvzk4')
+[![Run Game](https://www.youtube.com/watch?v=VhnznJZvzk4'/0.jpg)]
+(https://www.youtube.com/watch?v=VhnznJZvzk4')
 
+[![Everything Is AWESOME](https://www.youtube.com/watch?v=VhnznJZvzk4'/0.jpg)]
+(https://www.youtube.com/watch?v=VhnznJZvzk4 "Everything Is AWESOME")
+
+[![IMAGE ALT TEXT](http://img.youtube.com/vi/YOUTUBE_VIDEO_ID_HERE/0.jpg)](http://www.youtube.com/watch?v=YOUTUBE_VIDEO_ID_HERE "Video Title")
 ## 기술 설명
 
